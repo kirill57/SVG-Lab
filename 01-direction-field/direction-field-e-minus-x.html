@@ -26,7 +26,6 @@
     <svg id="plot" viewBox="-5.5 -5.5 11 11"></svg>
 
     <script>
-        // The exact same JavaScript logic from the previous file
         document.addEventListener('DOMContentLoaded', () => {
             const svg = document.getElementById('plot');
             const namespace = "http://www.w3.org/2000/svg";
@@ -37,6 +36,23 @@
             const gridStep = 0.5;
             const segmentLength = 0.2;
             let initialY0 = 2;
+
+            // --- Definitions for markers ---
+            const defs = document.createElementNS(namespace, 'defs');
+            const arrowhead = document.createElementNS(namespace, 'marker');
+            arrowhead.setAttribute('id', 'arrowhead');
+            arrowhead.setAttribute('viewBox', '0 0 10 10');
+            arrowhead.setAttribute('refX', '8');
+            arrowhead.setAttribute('refY', '5');
+            arrowhead.setAttribute('markerWidth', '4');
+            arrowhead.setAttribute('markerHeight', '4');
+            arrowhead.setAttribute('orient', 'auto-start-reverse');
+            const arrowheadPath = document.createElementNS(namespace, 'path');
+            arrowheadPath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            arrowheadPath.setAttribute('fill', '#9ca3af');
+            arrowhead.appendChild(arrowheadPath);
+            defs.appendChild(arrowhead);
+            svg.appendChild(defs);
 
             // --- Main group for coordinate transformation ---
             const mainGroup = document.createElementNS(namespace, 'g');
@@ -63,13 +79,17 @@
 
             // --- Drawing Functions ---
             function drawAxes() {
+                const axisColor = '#9ca3af'; // gray-400
+                const axisWidth = '0.03';
+
                 const xAxis = document.createElementNS(namespace, 'line');
                 xAxis.setAttribute('x1', xRange.min);
                 xAxis.setAttribute('y1', '0');
                 xAxis.setAttribute('x2', xRange.max);
                 xAxis.setAttribute('y2', '0');
-                xAxis.setAttribute('stroke', '#9ca3af'); // gray-400
-                xAxis.setAttribute('stroke-width', '0.03');
+                xAxis.setAttribute('stroke', axisColor);
+                xAxis.setAttribute('stroke-width', axisWidth);
+                xAxis.setAttribute('marker-end', 'url(#arrowhead)');
                 mainGroup.appendChild(xAxis);
                 
                 const yAxis = document.createElementNS(namespace, 'line');
@@ -77,9 +97,38 @@
                 yAxis.setAttribute('y1', yRange.min);
                 yAxis.setAttribute('x2', '0');
                 yAxis.setAttribute('y2', yRange.max);
-                yAxis.setAttribute('stroke', '#9ca3af'); // gray-400
-                yAxis.setAttribute('stroke-width', '0.03');
+                yAxis.setAttribute('stroke', axisColor);
+                yAxis.setAttribute('stroke-width', axisWidth);
+                yAxis.setAttribute('marker-end', 'url(#arrowhead)'); // Changed from marker-start to marker-end
                 mainGroup.appendChild(yAxis);
+
+                // --- Axis Labels ---
+                const labelColor = '#4b5563'; // gray-600
+                const labelSize = '0.4';
+
+                // t-axis label (right after the arrow tip)
+                const tLabel = document.createElementNS(namespace, 'text');
+                tLabel.textContent = 't';
+                tLabel.setAttribute('x', xRange.max + 0.2);
+                tLabel.setAttribute('y', 0);
+                tLabel.setAttribute('font-size', labelSize);
+                tLabel.setAttribute('text-anchor', 'start');
+                tLabel.setAttribute('dominant-baseline', 'middle');
+                tLabel.setAttribute('fill', labelColor);
+                tLabel.setAttribute('transform', 'scale(1, -1)'); // Flip text back upright
+                mainGroup.appendChild(tLabel);
+
+                // y-axis label (at the top, above the arrow)
+                const yLabel = document.createElementNS(namespace, 'text');
+                yLabel.textContent = 'y';
+                yLabel.setAttribute('x', 0); // Center on the axis
+                yLabel.setAttribute('y', yRange.min - 0.4); // Position it just above the top of the axis (accounting for coordinate flip)
+                yLabel.setAttribute('font-size', labelSize);
+                yLabel.setAttribute('text-anchor', 'middle'); // Center the text horizontally
+                yLabel.setAttribute('dominant-baseline', 'middle'); 
+                yLabel.setAttribute('fill', labelColor);
+                yLabel.setAttribute('transform', 'scale(1, -1)'); // Flip text back upright
+                mainGroup.appendChild(yLabel);
             }
 
             function drawDirectionField() {
@@ -165,3 +214,7 @@
     </script>
 </body>
 </html>
+
+
+
+
