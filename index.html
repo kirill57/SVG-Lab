@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SVG Lab - Educational SVG Materials Gallery</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
     <style>
         /* Custom animations and transitions */
         .module-card {
@@ -34,8 +35,8 @@
             <div class="text-center">
                 <h1 class="text-5xl font-bold mb-4">SVG Lab</h1>
                 <p class="text-xl mb-8 max-w-3xl mx-auto">
-                    A comprehensive collection of educational SVG materials, examples, and interactive tutorials 
-                    designed to help you master Scalable Vector Graphics.
+                    A growing library of visual modules that illustrate mathematical ideas through interactive SVG graphics.
+                    Dive into dynamic diagrams built to support teaching and learning, not to teach SVG itself.
                 </p>
                 <div class="flex justify-center space-x-4">
                     <span class="bg-white bg-opacity-20 px-4 py-2 rounded-full">Educational</span>
@@ -67,29 +68,29 @@
             <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Learning Modules</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Template Module Card -->
+                <!-- Direction Field Module Card -->
                 <div class="module-card bg-white rounded-lg shadow-md overflow-hidden">
                     <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-6 text-white">
                         <div class="svg-preview flex items-center justify-center">
                             <svg width="100" height="80" viewBox="0 0 100 80">
                                 <rect x="10" y="20" width="80" height="40" fill="white" fill-opacity="0.9" rx="5"/>
                                 <text x="50" y="45" text-anchor="middle" fill="#1e40af" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
-                                    Template
+                                    y' = -y
                                 </text>
                             </svg>
                         </div>
                     </div>
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2">01 - Template Module</h3>
+                        <h3 class="text-xl font-semibold mb-2">01 - Direction Field for y' = -y</h3>
                         <p class="text-gray-600 mb-4">
-                            A standardized template for creating new SVG learning modules. Shows the recommended structure and layout.
+                            Visualizes the differential equation y' = -y through a directional field and sample solution curves to support classroom discussions.
                         </p>
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">Template</span>
-                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">Structure</span>
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">Differential Equations</span>
+                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm">Direction Field</span>
                         </div>
-                        <a href="01-template/index.html" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                            View Module →
+                        <a href="01-direction-field/index.html" class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                            View Module ->
                         </a>
                     </div>
                 </div>
@@ -154,12 +155,11 @@
                 <div>
                     <h3 class="text-xl font-semibold mb-4">What is SVG Lab?</h3>
                     <p class="text-gray-600 mb-4">
-                        SVG Lab is a comprehensive educational resource for learning Scalable Vector Graphics (SVG). 
-                        Each module is designed to teach specific concepts, techniques, or applications of SVG in web development and design.
+                        SVG Lab curates mathematics-focused visualizations built with SVG and lightweight interactivity.
+                        Each module targets a single concept and offers ready-to-use media for teaching, presentations, or self-study.
                     </p>
                     <p class="text-gray-600">
-                        Whether you're a beginner learning the basics or an advanced developer exploring complex animations, 
-                        SVG Lab provides structured, hands-on examples to enhance your skills.
+                        Browse for topics that match your lesson plan, explore the live diagram, and adapt the source as needed to fit your classroom or notes.
                     </p>
                 </div>
                 <div>
@@ -169,7 +169,7 @@
                         <li>Click on any module to explore its content</li>
                         <li>Study the code examples and explanations</li>
                         <li>Experiment with the interactive elements</li>
-                        <li>Use the template to create your own modules</li>
+                        <li>Adapt the source as needed to fit your classroom or notes</li>
                     </ul>
                 </div>
             </div>
@@ -183,14 +183,14 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">SVG Lab</h3>
                     <p class="text-gray-300">
-                        Educational SVG materials for developers and designers.
+                        Interactive SVG math visuals for educators and students.
                     </p>
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
                     <ul class="space-y-2">
                         <li><a href="#modules" class="text-gray-300 hover:text-white transition-colors">Modules</a></li>
-                        <li><a href="01-template/index.html" class="text-gray-300 hover:text-white transition-colors">Template</a></li>
+                        <li><a href="01-direction-field/index.html" class="text-gray-300 hover:text-white transition-colors">Direction Field for y' = -y</a></li>
                         <li><a href="https://github.com/kirill57/SVG-Lab" class="text-gray-300 hover:text-white transition-colors">GitHub Repository</a></li>
                     </ul>
                 </div>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embeddable: Direction Field y' = -y (e^-x)</title>
+    <style>
+        /* Basic reset to ensure it fills the iframe */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #ffffff; /* Explicitly set a background */
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- The interactive SVG element fills the entire page -->
+    <svg id="plot" viewBox="-5.5 -5.5 11 11"></svg>
+
+    <script>
+        // The exact same JavaScript logic from the previous file
+        document.addEventListener('DOMContentLoaded', () => {
+            const svg = document.getElementById('plot');
+            const namespace = "http://www.w3.org/2000/svg";
+
+            // --- Configuration ---
+            const xRange = { min: -5, max: 5 };
+            const yRange = { min: -5, max: 5 };
+            const gridStep = 0.5;
+            const segmentLength = 0.2;
+            let initialY0 = 2;
+
+            // --- Main group for coordinate transformation ---
+            const mainGroup = document.createElementNS(namespace, 'g');
+            mainGroup.setAttribute('transform', 'scale(1, -1)');
+            svg.appendChild(mainGroup);
+            
+            // --- Elements ---
+            const directionFieldGroup = document.createElementNS(namespace, 'g');
+            mainGroup.appendChild(directionFieldGroup);
+
+            const integralCurve = document.createElementNS(namespace, 'path');
+            integralCurve.setAttribute('fill', 'none');
+            integralCurve.setAttribute('stroke', '#ef4444'); // red-500
+            integralCurve.setAttribute('stroke-width', '0.08');
+            mainGroup.appendChild(integralCurve);
+            
+            const handle = document.createElementNS(namespace, 'circle');
+            handle.setAttribute('r', '0.2');
+            handle.setAttribute('fill', '#3b82f6'); // blue-500
+            handle.setAttribute('stroke', 'white');
+            handle.setAttribute('stroke-width', '0.05');
+            handle.style.cursor = 'grab';
+            mainGroup.appendChild(handle);
+
+            // --- Drawing Functions ---
+            function drawAxes() {
+                const xAxis = document.createElementNS(namespace, 'line');
+                xAxis.setAttribute('x1', xRange.min);
+                xAxis.setAttribute('y1', '0');
+                xAxis.setAttribute('x2', xRange.max);
+                xAxis.setAttribute('y2', '0');
+                xAxis.setAttribute('stroke', '#9ca3af'); // gray-400
+                xAxis.setAttribute('stroke-width', '0.03');
+                mainGroup.appendChild(xAxis);
+                
+                const yAxis = document.createElementNS(namespace, 'line');
+                yAxis.setAttribute('x1', '0');
+                yAxis.setAttribute('y1', yRange.min);
+                yAxis.setAttribute('x2', '0');
+                yAxis.setAttribute('y2', yRange.max);
+                yAxis.setAttribute('stroke', '#9ca3af'); // gray-400
+                yAxis.setAttribute('stroke-width', '0.03');
+                mainGroup.appendChild(yAxis);
+            }
+
+            function drawDirectionField() {
+                for (let x = xRange.min; x <= xRange.max; x += gridStep) {
+                    for (let y = yRange.min; y <= yRange.max; y += gridStep) {
+                        const m = -y;
+                        const angle = Math.atan(m);
+                        const dx = (segmentLength / 2) * Math.cos(angle);
+                        const dy = (segmentLength / 2) * Math.sin(angle);
+
+                        const line = document.createElementNS(namespace, 'line');
+                        line.setAttribute('x1', x - dx);
+                        line.setAttribute('y1', y - dy);
+                        line.setAttribute('x2', x + dx);
+                        line.setAttribute('y2', y + dy);
+                        line.setAttribute('stroke', '#d1d5db'); // gray-300
+                        line.setAttribute('stroke-width', '0.02');
+                        directionFieldGroup.appendChild(line);
+                    }
+                }
+            }
+
+            function updateIntegralCurve(y0) {
+                let pathData = '';
+                const steps = 200;
+                const stepSize = (xRange.max - xRange.min) / steps;
+                for (let i = 0; i <= steps; i++) {
+                    const x = xRange.min + i * stepSize;
+                    const y = y0 * Math.exp(-x);
+                    if (Math.abs(y) > yRange.max * 1.5) continue; 
+                    const command = (pathData === '') ? 'M' : 'L';
+                    pathData += `${command} ${x} ${y} `;
+                }
+                integralCurve.setAttribute('d', pathData);
+            }
+            
+            function updateHandlePosition(y0) {
+                 handle.setAttribute('cx', '0');
+                 handle.setAttribute('cy', y0);
+            }
+
+            // --- Interactivity ---
+            let isDragging = false;
+            
+            function getSVGPoint(evt) {
+                const pt = svg.createSVGPoint();
+                if (evt.touches) {
+                    pt.x = evt.touches[0].clientX;
+                    pt.y = evt.touches[0].clientY;
+                } else {
+                    pt.x = evt.clientX;
+                    pt.y = evt.clientY;
+                }
+                return pt.matrixTransform(mainGroup.getScreenCTM().inverse());
+            }
+
+            function startDrag(evt) { isDragging = true; handle.style.cursor = 'grabbing'; }
+
+            function drag(evt) {
+                if (!isDragging) return;
+                evt.preventDefault();
+                const point = getSVGPoint(evt);
+                let newY0 = Math.max(yRange.min, Math.min(yRange.max, point.y));
+                updateHandlePosition(newY0);
+                updateIntegralCurve(newY0);
+            }
+
+            function endDrag(evt) { isDragging = false; handle.style.cursor = 'grab'; }
+            
+            handle.addEventListener('mousedown', startDrag);
+            svg.addEventListener('mousemove', drag);
+            window.addEventListener('mouseup', endDrag);
+            handle.addEventListener('touchstart', startDrag);
+            svg.addEventListener('touchmove', drag);
+            window.addEventListener('touchend', endDrag);
+
+            // --- Initialization ---
+            drawAxes();
+            drawDirectionField();
+            updateHandlePosition(initialY0);
+            updateIntegralCurve(initialY0);
+        });
+    </script>
+</body>
+</html>
