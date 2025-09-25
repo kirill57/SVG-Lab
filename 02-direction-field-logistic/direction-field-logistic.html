@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embeddable: Direction Field y' = y(1-y)</title>
+    <style>
+        /* Basic reset to ensure it fills the iframe */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #ffffff; /* Explicitly set a background */
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- The interactive SVG element fills the entire page -->
+    <svg id="plot" viewBox="-3.5 -3.5 7 7"></svg>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const svg = document.getElementById('plot');
+            const namespace = "http://www.w3.org/2000/svg";
+
+            // --- Configuration ---
+            const xRange = { min: -3, max: 3 };
+            const yRange = { min: -3, max: 3 };
+            const gridStep = 0.5;
+            const segmentLength = 0.2;
+            let initialY0 = 2;
+
+            // --- Definitions for markers ---
+            const defs = document.createElementNS(namespace, 'defs');
+            const arrowhead = document.createElementNS(namespace, 'marker');
+            arrowhead.setAttribute('id', 'arrowhead');
+            arrowhead.setAttribute('viewBox', '0 0 10 10');
+            arrowhead.setAttribute('refX', '8');
+            arrowhead.setAttribute('refY', '5');
+            arrowhead.setAttribute('markerWidth', '4');
+            arrowhead.setAttribute('markerHeight', '4');
+            arrowhead.setAttribute('orient', 'auto-start-reverse');
+            const arrowheadPath = document.createElementNS(namespace, 'path');
+            arrowheadPath.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+            arrowheadPath.setAttribute('fill', '#9ca3af');
+            arrowhead.appendChild(arrowheadPath);
+            defs.appendChild(arrowhead);
+            svg.appendChild(defs);
+
+            // --- Main group for coordinate transformation ---
+            const mainGroup = document.createElementNS(namespace, 'g');
+            mainGroup.setAttribute('transform', 'scale(1, -1)');
+            svg.appendChild(mainGroup);
+            
+            // --- Elements ---
+            const directionFieldGroup = document.createElementNS(namespace, 'g');
+            mainGroup.appendChild(directionFieldGroup);
+
+            const integralCurve = document.createElementNS(namespace, 'path');
+            integralCurve.setAttribute('fill', 'none');
+            integralCurve.setAttribute('stroke', '#ef4444'); // red-500
+            integralCurve.setAttribute('stroke-width', '0.04');
+            mainGroup.appendChild(integralCurve);
+            
+            const handle = document.createElementNS(namespace, 'circle');
+            handle.setAttribute('r', '0.07');
+            handle.setAttribute('fill', '#3b82f6'); // blue-500
+            handle.setAttribute('stroke', 'white');
+            handle.setAttribute('stroke-width', '0.05');
+            handle.style.cursor = 'grab';
+            mainGroup.appendChild(handle);
+
+            // --- Drawing Functions ---
+            function drawAxes() {
+                const axisColor = '#9ca3af'; // gray-400
+                const axisWidth = '0.03';
+
+                const xAxis = document.createElementNS(namespace, 'line');
+                xAxis.setAttribute('x1', xRange.min);
+                xAxis.setAttribute('y1', '0');
+                xAxis.setAttribute('x2', xRange.max);
+                xAxis.setAttribute('y2', '0');
+                xAxis.setAttribute('stroke', axisColor);
+                xAxis.setAttribute('stroke-width', axisWidth);
+                xAxis.setAttribute('marker-end', 'url(#arrowhead)');
+                mainGroup.appendChild(xAxis);
+                
+                const yAxis = document.createElementNS(namespace, 'line');
+                yAxis.setAttribute('x1', '0');
+                yAxis.setAttribute('y1', yRange.min);
+                yAxis.setAttribute('x2', '0');
+                yAxis.setAttribute('y2', yRange.max);
+                yAxis.setAttribute('stroke', axisColor);
+                yAxis.setAttribute('stroke-width', axisWidth);
+                yAxis.setAttribute('marker-end', 'url(#arrowhead)');
+                mainGroup.appendChild(yAxis);
+
+                // --- Tick Marks ---
+                const tickColor = '#9ca3af';
+                const tickWidth = '0.02';
+                const tickLength = 0.1;
+
+                // X-axis ticks
+                for (let i = Math.ceil(xRange.min); i <= Math.floor(xRange.max); i++) {
+                    if (i === 0) continue; // Skip origin
+                    const tick = document.createElementNS(namespace, 'line');
+                    tick.setAttribute('x1', i);
+                    tick.setAttribute('y1', -tickLength / 2);
+                    tick.setAttribute('x2', i);
+                    tick.setAttribute('y2', tickLength / 2);
+                    tick.setAttribute('stroke', tickColor);
+                    tick.setAttribute('stroke-width', tickWidth);
+                    mainGroup.appendChild(tick);
+                }
+
+                // Y-axis ticks
+                for (let i = Math.ceil(yRange.min); i <= Math.floor(yRange.max); i++) {
+                    if (i === 0) continue; // Skip origin
+                    const tick = document.createElementNS(namespace, 'line');
+                    tick.setAttribute('x1', -tickLength / 2);
+                    tick.setAttribute('y1', i);
+                    tick.setAttribute('x2', tickLength / 2);
+                    tick.setAttribute('y2', i);
+                    tick.setAttribute('stroke', tickColor);
+                    tick.setAttribute('stroke-width', tickWidth);
+                    mainGroup.appendChild(tick);
+                }
+
+                // --- Axis Labels ---
+                const labelColor = '#4b5563'; // gray-600
+                const labelSize = '0.4';
+
+                // t-axis label (right after the arrow tip)
+                const tLabel = document.createElementNS(namespace, 'text');
+                tLabel.textContent = 't';
+                tLabel.setAttribute('x', xRange.max + 0.2);
+                tLabel.setAttribute('y', 0);
+                tLabel.setAttribute('font-size', labelSize);
+                tLabel.setAttribute('text-anchor', 'start');
+                tLabel.setAttribute('dominant-baseline', 'middle');
+                tLabel.setAttribute('fill', labelColor);
+                tLabel.setAttribute('transform', 'scale(1, -1)'); // Flip text back upright
+                mainGroup.appendChild(tLabel);
+
+                // y-axis label (at the top, above the arrow)
+                const yLabel = document.createElementNS(namespace, 'text');
+                yLabel.textContent = 'y';
+                yLabel.setAttribute('x', 0); // Center on the axis
+                yLabel.setAttribute('y', yRange.min - 0.4); 
+                yLabel.setAttribute('font-size', labelSize);
+                yLabel.setAttribute('text-anchor', 'middle'); 
+                yLabel.setAttribute('dominant-baseline', 'middle'); 
+                yLabel.setAttribute('fill', labelColor);
+                yLabel.setAttribute('transform', 'scale(1, -1)');
+                mainGroup.appendChild(yLabel);
+
+                // --- Equilibrium Solutions y=0 and y=1 ---
+                const equilibriumColor = '#3b82f6'; // blue-500
+                const equilibriumWidth = '0.04';
+                const equilibriumDash = '0.2 0.1';
+
+                const yEqualsZeroLine = document.createElementNS(namespace, 'line');
+                yEqualsZeroLine.setAttribute('x1', xRange.min);
+                yEqualsZeroLine.setAttribute('y1', '0');
+                yEqualsZeroLine.setAttribute('x2', xRange.max);
+                yEqualsZeroLine.setAttribute('y2', '0');
+                yEqualsZeroLine.setAttribute('stroke', equilibriumColor);
+                yEqualsZeroLine.setAttribute('stroke-width', equilibriumWidth);
+                yEqualsZeroLine.setAttribute('stroke-dasharray', equilibriumDash);
+                mainGroup.appendChild(yEqualsZeroLine);
+
+                const yEqualsOneLine = document.createElementNS(namespace, 'line');
+                yEqualsOneLine.setAttribute('x1', xRange.min);
+                yEqualsOneLine.setAttribute('y1', '1');
+                yEqualsOneLine.setAttribute('x2', xRange.max);
+                yEqualsOneLine.setAttribute('y2', '1');
+                yEqualsOneLine.setAttribute('stroke', equilibriumColor);
+                yEqualsOneLine.setAttribute('stroke-width', equilibriumWidth);
+                yEqualsOneLine.setAttribute('stroke-dasharray', equilibriumDash);
+                mainGroup.appendChild(yEqualsOneLine);
+
+                // --- Label for y=1 equilibrium solution ---
+                const yEqualsOneLabel = document.createElementNS(namespace, 'text');
+                yEqualsOneLabel.textContent = 'y=1';
+                yEqualsOneLabel.setAttribute('x', xRange.max - 0.7); // Position towards the right end
+                yEqualsOneLabel.setAttribute('y', -1); // Set to -1 to account for coordinate flip
+                yEqualsOneLabel.setAttribute('font-size', '0.25');
+                yEqualsOneLabel.setAttribute('text-anchor', 'middle');
+                yEqualsOneLabel.setAttribute('dominant-baseline', 'text-after-edge'); // Place text just above the line
+                yEqualsOneLabel.setAttribute('fill', equilibriumColor);
+                yEqualsOneLabel.setAttribute('transform', 'scale(1, -1)'); // Flip text back upright
+                mainGroup.appendChild(yEqualsOneLabel);
+            }
+
+            function drawDirectionField() {
+                for (let x = xRange.min; x <= xRange.max; x += gridStep) {
+                    for (let y = yRange.min; y <= yRange.max; y += gridStep) {
+                        const m = y * (1 - y); // Changed to y(1-y)
+                        const angle = Math.atan(m);
+                        const dx = (segmentLength / 2) * Math.cos(angle);
+                        const dy = (segmentLength / 2) * Math.sin(angle);
+
+                        const line = document.createElementNS(namespace, 'line');
+                        line.setAttribute('x1', x - dx);
+                        line.setAttribute('y1', y - dy);
+                        line.setAttribute('x2', x + dx);
+                        line.setAttribute('y2', y + dy);
+                        line.setAttribute('stroke', '#d1d5db'); // gray-300
+                        line.setAttribute('stroke-width', '0.02');
+                        directionFieldGroup.appendChild(line);
+                    }
+                }
+            }
+
+            function updateIntegralCurve(y0) {
+                let pathData = '';
+                const steps = 200;
+                const stepSize = (xRange.max - xRange.min) / steps;
+
+                // Handle equilibrium solutions
+                if (Math.abs(y0) < 1e-6) {
+                    pathData = `M ${xRange.min} 0 L ${xRange.max} 0`;
+                    integralCurve.setAttribute('d', pathData);
+                    return;
+                }
+                if (Math.abs(y0 - 1) < 1e-6) {
+                    pathData = `M ${xRange.min} 1 L ${xRange.max} 1`;
+                    integralCurve.setAttribute('d', pathData);
+                    return;
+                }
+                
+                let lastY = NaN;
+
+                for (let i = 0; i <= steps; i++) {
+                    const x = xRange.min + i * stepSize;
+                    
+                    // Solution to y' = y(1-y): y(t) = y0*e^t / (1-y0 + y0*e^t)
+                    const denominator = (1 - y0) + y0 * Math.exp(x);
+                    
+                    if (Math.abs(denominator) < 1e-10) {
+                         lastY = NaN; 
+                         continue;
+                    }
+                    
+                    const y = (y0 * Math.exp(x)) / denominator;
+                    
+                    if (Math.abs(y) > yRange.max * 1.5) {
+                        lastY = NaN; 
+                        continue;
+                    }
+                    
+                    const command = (isNaN(lastY)) ? 'M' : 'L';
+                    pathData += `${command} ${x} ${y} `;
+                    lastY = y;
+                }
+                integralCurve.setAttribute('d', pathData);
+            }
+            
+            function updateHandlePosition(y0) {
+                 handle.setAttribute('cx', '0');
+                 handle.setAttribute('cy', y0);
+            }
+
+            // --- Interactivity ---
+            let isDragging = false;
+            
+            function getSVGPoint(evt) {
+                const pt = svg.createSVGPoint();
+                if (evt.touches) {
+                    pt.x = evt.touches[0].clientX;
+                    pt.y = evt.touches[0].clientY;
+                } else {
+                    pt.x = evt.clientX;
+                    pt.y = evt.clientY;
+                }
+                return pt.matrixTransform(mainGroup.getScreenCTM().inverse());
+            }
+
+            function startDrag(evt) { isDragging = true; handle.style.cursor = 'grabbing'; }
+
+            function drag(evt) {
+                if (!isDragging) return;
+                evt.preventDefault();
+                const point = getSVGPoint(evt);
+                let newY0 = Math.max(yRange.min, Math.min(yRange.max, point.y));
+                updateHandlePosition(newY0);
+                updateIntegralCurve(newY0);
+            }
+
+            function endDrag(evt) { isDragging = false; handle.style.cursor = 'grab'; }
+            
+            handle.addEventListener('mousedown', startDrag);
+            svg.addEventListener('mousemove', drag);
+            window.addEventListener('mouseup', endDrag);
+            handle.addEventListener('touchstart', startDrag);
+            svg.addEventListener('touchmove', drag);
+            window.addEventListener('touchend', endDrag);
+
+            // --- Initialization ---
+            drawAxes();
+            drawDirectionField();
+            updateHandlePosition(initialY0);
+            updateIntegralCurve(initialY0);
+        });
+    </script>
+</body>
+</html>
